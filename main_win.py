@@ -38,19 +38,19 @@ class MainWindow(tk.Tk):
         center.grid_columnconfigure(1, weight=1)
 
         self.host_val = tk.StringVar(value=HOST_DEFAULT)
-        tk.Entry(center, textvariable=self.host_val).pack()
+        tk.Entry(center, textvariable=self.host_val).pack(anchor=tk.W)
 
         self.port_val = tk.IntVar(value=PORT_DEFAULT)
         tk.Spinbox(center, textvariable=self.port_val,
-                   from_=0, to=65535).pack()
+                   from_=0, to=65535).pack(anchor=tk.W)
 
         tk.Button(center, text="connect",
-                  command=self.action_connect).pack()
+                  command=self.action_connect).pack(anchor=tk.W)
 
         self.info_frame = tk.Frame(center, bg='blue', width=200, height=300)
         self.info_frame.pack(side=tk.BOTTOM, fill=tk.X)
         tk.Button(self.info_frame, text="clear",
-                  command=self.action_clear_console).pack()
+                  command=self.action_clear_console).pack(anchor=tk.W)
         self.logger = Logger(master=self.info_frame)
         self.logger.pack(fill=tk.X)
 
