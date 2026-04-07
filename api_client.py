@@ -30,7 +30,6 @@ class APIClient:
                 self.disconnect()
                 break
             self.received_bytes += b
-            print(f"received {len(self.received_bytes)} bytes")
 
         print("After thread")
         self._running = False

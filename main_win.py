@@ -57,9 +57,11 @@ class MainWindow(tk.Tk):
                                           command=self.action_send_test)
         self.send_test_button.pack(anchor=tk.W)
 
-        self.recv_test_button = tk.Button(center, text="recv test",
-                                          command=self.action_recv_test)
-        self.recv_test_button.pack(anchor=tk.W)
+        self.recv_label_val = tk.StringVar(self, value="")
+        tk.Label(center, textvariable=self.recv_label_val).pack(anchor=tk.W)
+        self.dump_recv_buf_button = tk.Button(center, text="dump recv",
+                                              command=self.action_dump_recv_buf)
+        self.dump_recv_buf_button.pack(anchor=tk.W)
 
         self.info_frame = tk.Frame(center, bg='blue', width=200, height=300)
         self.info_frame.pack(side=tk.BOTTOM, fill=tk.X)
@@ -74,6 +76,8 @@ class MainWindow(tk.Tk):
 
     def on_timer(self):
         self.update_conn_state()
+        self.recv_label_val.set(
+            f"Bytes received: {len(self.client.received_bytes)}")
         self.after(UPDATE_UI_INTERVAL, self.on_timer)
 
     def cleanup(self):
@@ -83,11 +87,11 @@ class MainWindow(tk.Tk):
         if self.client.connected():
             self.connect_button.config(text="close")
             self.send_test_button.config(state=tk.ACTIVE)
-            self.recv_test_button.config(state=tk.ACTIVE)
+            self.dump_recv_buf_button.config(state=tk.ACTIVE)
         else:
             self.connect_button.config(text="connect")
             self.send_test_button.config(state=tk.DISABLED)
-            self.recv_test_button.config(state=tk.DISABLED)
+            self.dump_recv_buf_button.config(state=tk.DISABLED)
 
     def action_clear_console(self):
         self.logger.clear()
@@ -106,6 +110,6 @@ class MainWindow(tk.Tk):
         self.client.send_test(12)
         self.update_conn_state()
 
-    def action_recv_test(self):
-        self.client.test_recv()
+    def action_dump_recv_buf(self):
+        self.logger.print(f"{self.client.received_bytes}")
         self.update_conn_state()
