@@ -5,6 +5,8 @@ from log_interf import LoggerInterface
 HOST_DEFAULT = "192.168.250.101"
 PORT_DEFAULT = 9000
 
+UPDATE_UI_INTERVAL = 1000
+
 
 class Logger(tk.Text, LoggerInterface):
     def __init__(self,  **kwargs):
@@ -67,6 +69,12 @@ class MainWindow(tk.Tk):
         self.logger.pack(fill=tk.X)
         self.client = APIClient(logger=self.logger)
         self.update_conn_state()
+
+        self.after(UPDATE_UI_INTERVAL, self.on_timer)
+
+    def on_timer(self):
+        self.update_conn_state()
+        self.after(UPDATE_UI_INTERVAL, self.on_timer)
 
     def cleanup(self):
         self.client.disconnect()
