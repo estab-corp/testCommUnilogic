@@ -51,6 +51,14 @@ class MainWindow(tk.Tk):
                                         command=self.action_connect)
         self.connect_button.pack(anchor=tk.W)
 
+        self.send_test_button = tk.Button(center, text="send test",
+                                          command=self.action_send_test)
+        self.send_test_button.pack(anchor=tk.W)
+
+        self.recv_test_button = tk.Button(center, text="recv test",
+                                          command=self.action_recv_test)
+        self.recv_test_button.pack(anchor=tk.W)
+
         self.info_frame = tk.Frame(center, bg='blue', width=200, height=300)
         self.info_frame.pack(side=tk.BOTTOM, fill=tk.X)
         tk.Button(self.info_frame, text="clear",
@@ -58,12 +66,22 @@ class MainWindow(tk.Tk):
         self.logger = Logger(master=self.info_frame)
         self.logger.pack(fill=tk.X)
         self.client = APIClient(logger=self.logger)
+        self.update_conn_state()
+
+    def update_conn_state(self):
+        if self.client.connected():
+            self.connect_button.config(text="close")
+            self.send_test_button.config(state=tk.ACTIVE)
+            self.recv_test_button.config(state=tk.ACTIVE)
+        else:
+            self.connect_button.config(text="connect")
+            self.send_test_button.config(state=tk.DISABLED)
+            self.recv_test_button.config(state=tk.DISABLED)
 
     def action_clear_console(self):
         self.logger.clear()
 
     def action_connect(self):
-
         if not self.client.connected():
             self.logger.print(
                 f"connection to {self.host_val.get()}:{self.port_val.get()}")
@@ -71,7 +89,12 @@ class MainWindow(tk.Tk):
         else:
             self.logger.print("disconnect")
             self.client.disconnect()
-        if self.client.connected():
-            self.connect_button.config(text="close")
-        else:
-            self.connect_button.config(text="connect")
+        self.update_conn_state()
+
+    def action_send_test(self):
+        self.client.send_test(12)
+        self.update_conn_state()
+
+    def action_recv_test(self):
+        self.client.test_recv()
+        self.update_conn_state()
