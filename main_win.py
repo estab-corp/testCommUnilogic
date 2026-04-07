@@ -68,6 +68,9 @@ class MainWindow(tk.Tk):
         self.client = APIClient(logger=self.logger)
         self.update_conn_state()
 
+    def cleanup(self):
+        self.client.disconnect()
+
     def update_conn_state(self):
         if self.client.connected():
             self.connect_button.config(text="close")
