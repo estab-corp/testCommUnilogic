@@ -3,7 +3,6 @@ from typing import Optional
 from log_interf import LoggerInterface
 import struct
 import threading
-import time
 
 
 class APIClient:
