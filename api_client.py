@@ -2,7 +2,7 @@ import struct
 import threading
 import socket
 from enum import IntEnum
-from typing import Optional
+from typing import Optional, Tuple
 from log_interf import LoggerInterface
 import api
 
@@ -19,6 +19,8 @@ class MsgParser:
         self.task_request_msg = struct.Struct("IB3I3I")
         self.rx_header = struct.Struct("B")
         self.task_started_msg = struct.Struct("=BIB")
+        self.task_ended_msg = struct.Struct("=BIB")
+        self.machine_state_msg = struct.Struct("=BB")
 
     def encode_msg(self, msg: api.MoveRequest) -> bytes:
         command_byte = 1  # VTDBRE
@@ -28,18 +30,19 @@ class MsgParser:
             command_byte = 4
         return self.task_request_msg.pack(msg.task_id, command_byte, msg.origin[0], msg.origin[1], msg.origin[2], msg.dest[0], msg.dest[1], msg.dest[2])
 
-    def decode_msg(self, data: bytes) -> Optional[api.RxBaseMsg]:
+    def decode_msg(self, data: bytes) -> Tuple[Optional[api.RxBaseMsg], int]:
         msg_typ: MSGType = self._decode_header(data[0:1])
         if msg_typ == MSGType.Unknown:
-            return None
+            return None, 0
         if msg_typ == MSGType.MachineState:
-            return api.MachineStateMsg()
+            _, test = self.machine_state_msg.unpack(data)
+            return api.MachineStateMsg(test=test), self.machine_state_msg.size
         if msg_typ == MSGType.TaskStarted:
             _, task_id, ok = self.task_started_msg.unpack(data)
-            return api.TaskStartedMsg(task_id=task_id, ok_status=ok)
+            return api.TaskStartedMsg(task_id=task_id, ok_status=ok), self.task_started_msg.size
         if msg_typ == MSGType.TaskEnded:
-            _, task_id, ok = self.task_started_msg.unpack(data)
-            return api.TaskEndedMsg(task_id=task_id, ok_status=ok)
+            _, task_id, ok = self.task_ended_msg.unpack(data)
+            return api.TaskEndedMsg(task_id=task_id, ok_status=ok), self.task_ended_msg.size
         assert 0
         return None
 
@@ -155,19 +158,25 @@ class APIClient:
 
 if __name__ == "__main__":
     msg_parser = MsgParser()
-    assert msg_parser.decode_msg(bytes()) is None
+    msg, size = msg_parser.decode_msg(bytes())
+    assert msg is None
 
-    msg = msg_parser.decode_msg(
-        bytes([0x01, 0X00, 0X00, 0X00, 0XFF, 0X01]))
+    buf = bytes([0x01, 0X00, 0X00, 0X00, 0XFF, 0X01])
+    msg, read_size = msg_parser.decode_msg(
+        buf)
     assert isinstance(msg, api.TaskStartedMsg)
+    assert read_size == len(buf)
     print(msg)
 
-    msg = msg_parser.decode_msg(
-        bytes([0x02, 0X00, 0X00, 0X00, 0XFF, 0X01]))
+    buf = bytes([0x02, 0X00, 0X00, 0X00, 0XFF, 0X01])
+    msg, read_size = msg_parser.decode_msg(
+        buf)
     assert isinstance(msg, api.TaskEndedMsg)
+    assert read_size == len(buf)
     print(msg)
 
-    msg = msg_parser.decode_msg(
-        bytes([0x03]))
+    buf = bytes([0x03, 0X02])
+    msg, read_size = msg_parser.decode_msg(buf)
     assert isinstance(msg, api.MachineStateMsg)
+    assert read_size == len(buf)
     print(msg)

@@ -153,11 +153,10 @@ class MainWindow(tk.Tk):
         self.update_conn_state()
 
     def action_dump_recv_buf(self):
-        self.logger.print(f"{self.client.received_bytes}")
+        self.logger.print(f"{self.client.received_bytes.hex(sep=" ")}")
         self.update_conn_state()
 
     def action_send_validation_msg(self):
-
         typ = api.ValidationType.PICK_AND_PLACE
         if self.typ_sel.get() == "VTDBRE":
             typ = api.ValidationType.DEPOSE_RETOURNEUR

@@ -44,4 +44,8 @@ class TaskEndedMsg(RxBaseMsg):
 
 
 class MachineStateMsg(RxBaseMsg):
-    pass
+    def __init__(self, test: int) -> None:
+        self.test = test
+
+    def __repr__(self) -> str:
+        return f"MachineStateMsg: test={self.test}"
