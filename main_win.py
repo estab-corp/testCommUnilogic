@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from api_client import APIClient
 from log_interf import LoggerInterface
 
@@ -63,6 +64,31 @@ class MainWindow(tk.Tk):
                                               command=self.action_dump_recv_buf)
         self.dump_recv_buf_button.pack(anchor=tk.W)
 
+        msg_frame = tk.LabelFrame(center, text="Validation",  relief="raised")
+
+        tk.Label(msg_frame, text="origine").grid(column=0, row=0)
+        tk.Spinbox(msg_frame).grid(column=0, row=1)
+        tk.Spinbox(msg_frame).grid(column=0, row=2)
+        tk.Spinbox(msg_frame).grid(column=0, row=3)
+
+        tk.Label(msg_frame, text="destination").grid(column=1, row=0)
+        tk.Spinbox(msg_frame).grid(column=1, row=1)
+        tk.Spinbox(msg_frame).grid(column=1, row=2)
+        tk.Spinbox(msg_frame).grid(column=1, row=3)
+
+        tk.Label(msg_frame, text="type").grid(column=2, row=0)
+        c = ttk.Combobox(msg_frame, values=[
+                         "VTD", "VTDBRE", "VTPBRE"], state="readonly")
+        c.current(0)
+        c.grid(column=2, row=1)
+
+        tk.Label(msg_frame, text="tache id").grid(column=3, row=0)
+        tk.Spinbox(msg_frame).grid(column=3, row=1)
+
+        tk.Button(msg_frame, text="send",
+                  command=self.action_send_validation_msg).grid(column=4, row=0)
+        msg_frame.pack()
+
         self.info_frame = tk.Frame(center, bg='blue', width=200, height=300)
         self.info_frame.pack(side=tk.BOTTOM, fill=tk.X)
         tk.Button(self.info_frame, text="clear",
@@ -113,3 +139,6 @@ class MainWindow(tk.Tk):
     def action_dump_recv_buf(self):
         self.logger.print(f"{self.client.received_bytes}")
         self.update_conn_state()
+
+    def action_send_validation_msg(self):
+        print("Send validation msg")
