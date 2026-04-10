@@ -119,15 +119,6 @@ class APIClient:
             self.logger.print(f"conn error 1: {type(err)} {str(err)}")
             self.client = None
 
-    def _recv(self, size):
-        assert self.client
-        try:
-            return self.client.recv(size)
-        except Exception as err:
-            self.logger.print(f"conn error 2: {type(err)} {str(err)}")
-            self.client = None
-        return None
-
     def send_test(self, val: int):
         if self.client is None:
             self.logger.print("not connected!")
@@ -135,20 +126,6 @@ class APIClient:
 
         test_tx = struct.pack("=HBL", val, 250, 400)
         self._send(test_tx)
-
-    def test_recv(self):
-        if self.client is None:
-            self.logger.print("not connected!")
-            return
-
-        data = self._recv(6)
-        if data is None:
-            return
-        self.logger.print(f"{data}")
-        self.logger.print(f"Done receiving {data} {len(data)}")
-        if len(data) == 6:
-            test_rx0, test_rx1, test_rx2, = struct.unpack("=BBL", data)
-            self.logger.print(f"{test_rx0}, {test_rx1}, {test_rx2}")
 
     def send_msg(self, msg: api.MoveRequest):
         data = self.msg_parser.encode_msg(msg)
