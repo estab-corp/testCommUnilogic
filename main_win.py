@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from api_client import APIClient
+import api
 from log_interf import LoggerInterface
 
 HOST_DEFAULT = "192.168.250.101"
@@ -64,26 +65,41 @@ class MainWindow(tk.Tk):
                                               command=self.action_dump_recv_buf)
         self.dump_recv_buf_button.pack(anchor=tk.W)
 
-        msg_frame = tk.LabelFrame(center, text="Validation",  relief="raised")
+        msg_frame = tk.LabelFrame(
+            center, text="Envoi msg Validation",  relief="raised")
 
         tk.Label(msg_frame, text="origine").grid(column=0, row=0)
-        tk.Spinbox(msg_frame).grid(column=0, row=1)
-        tk.Spinbox(msg_frame).grid(column=0, row=2)
-        tk.Spinbox(msg_frame).grid(column=0, row=3)
+        self.ori_x = tk.IntVar(msg_frame, value=10)
+        self.ori_y = tk.IntVar(msg_frame, value=20)
+        self.ori_z = tk.IntVar(msg_frame, value=30)
+        tk.Spinbox(msg_frame, textvariable=self.ori_x,
+                   from_=0, to=65535).grid(column=0, row=1)
+        tk.Spinbox(msg_frame, textvariable=self.ori_y,
+                   from_=0, to=65535).grid(column=0, row=2)
+        tk.Spinbox(msg_frame, textvariable=self.ori_z,
+                   from_=0, to=65535).grid(column=0, row=3)
 
         tk.Label(msg_frame, text="destination").grid(column=1, row=0)
-        tk.Spinbox(msg_frame).grid(column=1, row=1)
-        tk.Spinbox(msg_frame).grid(column=1, row=2)
-        tk.Spinbox(msg_frame).grid(column=1, row=3)
+        self.dest_x = tk.IntVar(msg_frame, value=40)
+        self.dest_y = tk.IntVar(msg_frame, value=50)
+        self.dest_z = tk.IntVar(msg_frame, value=60)
+        tk.Spinbox(msg_frame, textvariable=self.dest_x,
+                   from_=0, to=65535).grid(column=1, row=1)
+        tk.Spinbox(msg_frame, textvariable=self.dest_y,
+                   from_=0, to=65535).grid(column=1, row=2)
+        tk.Spinbox(msg_frame, textvariable=self.dest_z,
+                   from_=0, to=65535).grid(column=1, row=3)
 
         tk.Label(msg_frame, text="type").grid(column=2, row=0)
-        c = ttk.Combobox(msg_frame, values=[
-                         "VTD", "VTDBRE", "VTPBRE"], state="readonly")
-        c.current(0)
-        c.grid(column=2, row=1)
+        self.typ_sel = ttk.Combobox(msg_frame, values=[
+            "VTD", "VTDBRE", "VTPBRE"], state="readonly")
+        self.typ_sel.current(0)
+        self.typ_sel.grid(column=2, row=1)
 
         tk.Label(msg_frame, text="tache id").grid(column=3, row=0)
-        tk.Spinbox(msg_frame).grid(column=3, row=1)
+        self.task_id = tk.IntVar(msg_frame, value=100)
+        tk.Spinbox(msg_frame, textvariable=self.task_id,
+                   from_=0, to=65535).grid(column=3, row=1)
 
         tk.Button(msg_frame, text="send",
                   command=self.action_send_validation_msg).grid(column=4, row=0)
@@ -141,4 +157,15 @@ class MainWindow(tk.Tk):
         self.update_conn_state()
 
     def action_send_validation_msg(self):
-        print("Send validation msg")
+
+        typ = api.ValidationType.PICK_AND_PLACE
+        if self.typ_sel.get() == "VTDBRE":
+            typ = api.ValidationType.DEPOSE_RETOURNEUR
+        elif self.typ_sel.get() == "VTPBRE":
+            typ = api.ValidationType.PRISE_RETOURNEUR
+        msg = api.MoveRequest(
+            typ=typ,
+            origin=(self.ori_x.get(), self.ori_y.get(), self.ori_z.get()),
+            dest=(self.dest_x.get(), self.dest_y.get(), self.dest_z.get()),
+            task_id=self.task_id.get())
+        self.logger.print(f"Send validation msg: {msg}")
