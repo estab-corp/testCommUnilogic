@@ -1,12 +1,11 @@
-
 from enum import IntEnum
 from typing import Tuple
 
 
 class ValidationType(IntEnum):
-    PICK_AND_PLACE = 0
-    DEPOSE_RETOURNEUR = 1
-    PRISE_RETOURNEUR = 2
+    PICK_AND_PLACE = 0  # VTD
+    DEPOSE_RETOURNEUR = 1  # VTDBRE
+    PRISE_RETOURNEUR = 2  # VTPBRE
 
 
 class MoveRequest:

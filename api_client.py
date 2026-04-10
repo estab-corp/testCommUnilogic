@@ -1,8 +1,29 @@
-import socket
-from typing import Optional
-from log_interf import LoggerInterface
 import struct
 import threading
+import socket
+from enum import IntEnum
+from typing import Optional, Tuple
+from log_interf import LoggerInterface
+import api
+
+
+class MSGType(IntEnum):
+    TaskStarted = 1
+    TaskEnded = 2
+    MachineState = 3
+
+
+class MsgParser:
+    def __init__(self):
+        self.task_request_msg = struct.Struct("IB3I3I")
+
+    def encode_msg(self, msg: api.MoveRequest) -> bytes:
+        command_byte = 1  # VTDBRE
+        if msg.typ == api.ValidationType.PICK_AND_PLACE:
+            command_byte = 2
+        if msg.typ == api.ValidationType.PRISE_RETOURNEUR:
+            command_byte = 4
+        return self.task_request_msg.pack(msg.task_id, command_byte, msg.origin[0], msg.origin[1], msg.origin[2], msg.dest[0], msg.dest[1], msg.dest[2])
 
 
 class APIClient:
@@ -16,6 +37,7 @@ class APIClient:
         self._running = False
         self._stop_thread_req = False
         self._thread: Optional[threading.Thread] = None
+        self.msg_parser = MsgParser()
 
     def _run(self):
         self._running = True
@@ -55,7 +77,6 @@ class APIClient:
 
     def disconnect(self):
         if self.client is None:
-            self.logger.print("already disconnected")
             return
         self._stop_thread_req = True
         self.client.close()
@@ -99,3 +120,8 @@ class APIClient:
         if len(data) == 6:
             test_rx0, test_rx1, test_rx2, = struct.unpack("=BBL", data)
             self.logger.print(f"{test_rx0}, {test_rx1}, {test_rx2}")
+
+    def send_msg(self, msg: api.MoveRequest):
+        data = self.msg_parser.encode_msg(msg)
+        self.logger.print(f"{data.hex(sep=" ")}")
+        self._send(data)

@@ -169,3 +169,4 @@ class MainWindow(tk.Tk):
             dest=(self.dest_x.get(), self.dest_y.get(), self.dest_z.get()),
             task_id=self.task_id.get())
         self.logger.print(f"Send validation msg: {msg}")
+        self.client.send_msg(msg)
