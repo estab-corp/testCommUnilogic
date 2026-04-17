@@ -16,11 +16,12 @@ class MSGType(IntEnum):
 
 class MsgParser:
     def __init__(self):
-        self.task_request_msg = struct.Struct("IB3I3I")
-        self.rx_header = struct.Struct("B")
-        self.task_started_msg = struct.Struct("=BIB")
-        self.task_ended_msg = struct.Struct("=BIB")
-        self.machine_state_msg = struct.Struct("=BB")
+        rx_header_fmt = "B"
+        self.task_request_msg = struct.Struct("=IB3I3I")
+        self.rx_header = struct.Struct(f"{rx_header_fmt}")
+        self.task_started_msg = struct.Struct(f"={rx_header_fmt}IB")
+        self.task_ended_msg = struct.Struct(f"={rx_header_fmt}IB")
+        self.machine_state_msg = struct.Struct(f"={rx_header_fmt}B")
 
     def encode_msg(self, msg: api.MoveRequest) -> bytes:
         command_byte = 1  # VTDBRE
@@ -28,7 +29,7 @@ class MsgParser:
             command_byte = 2
         if msg.typ == api.ValidationType.PRISE_RETOURNEUR:
             command_byte = 4
-        return self.task_request_msg.pack(msg.task_id, command_byte, msg.origin[0], msg.origin[1], msg.origin[2], msg.dest[0], msg.dest[1], msg.dest[2])
+        return self.task_request_msg.pack(msg.task_id, command_byte,  msg.origin[0], msg.origin[1], msg.origin[2], msg.dest[0], msg.dest[1], msg.dest[2])
 
     def decode_msg(self, data: bytes) -> Tuple[Optional[api.RxBaseMsg], int]:
         msg_typ: MSGType = self._decode_header(data[0:1])
