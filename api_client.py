@@ -132,14 +132,6 @@ class APIClient:
             self.logger.print(f"conn error 1: {type(err)} {str(err)}")
             self.client = None
 
-    def send_test(self, val: int):
-        if self.client is None:
-            self.logger.print("not connected!")
-            return
-
-        test_tx = struct.pack("=HBL", val, 250, 400)
-        self._send(test_tx)
-
     def send_msg(self, msg: api.MoveRequest):
         data = self.msg_parser.encode_msg(msg)
         self.logger.print(f"{data.hex(sep=" ")}")

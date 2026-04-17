@@ -55,10 +55,6 @@ class MainWindow(tk.Tk):
                                         command=self.action_connect)
         self.connect_button.pack(anchor=tk.W)
 
-        self.send_test_button = tk.Button(center, text="send test",
-                                          command=self.action_send_test)
-        self.send_test_button.pack(anchor=tk.W)
-
         self.recv_label_val = tk.StringVar(self, value="")
         tk.Label(center, textvariable=self.recv_label_val).pack(anchor=tk.W)
         self.dump_recv_buf_button = tk.Button(center, text="dump recv",
@@ -128,11 +124,9 @@ class MainWindow(tk.Tk):
     def update_conn_state(self):
         if self.client.connected():
             self.connect_button.config(text="close")
-            self.send_test_button.config(state=tk.ACTIVE)
             self.dump_recv_buf_button.config(state=tk.ACTIVE)
         else:
             self.connect_button.config(text="connect")
-            self.send_test_button.config(state=tk.DISABLED)
             self.dump_recv_buf_button.config(state=tk.DISABLED)
 
     def action_clear_console(self):
@@ -146,10 +140,6 @@ class MainWindow(tk.Tk):
         else:
             self.logger.print("disconnect")
             self.client.disconnect()
-        self.update_conn_state()
-
-    def action_send_test(self):
-        self.client.send_test(12)
         self.update_conn_state()
 
     def action_dump_recv_buf(self):
