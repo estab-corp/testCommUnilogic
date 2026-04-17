@@ -81,10 +81,22 @@ class APIClient:
                     self.disconnect()
                     break
                 self.received_bytes += b
+                self._try_decode()
         finally:
             print("After thread")
             self._running = False
             self._thread = None
+
+    def _try_decode(self):
+        print("Try decoding some msg...")
+        try:
+            msg, read_size = self.msg_parser.decode_msg(self.received_bytes)
+            if msg is not None:
+                self.logger.print(f"received Msg {msg} read_size={read_size}")
+            else:
+                self.logger.print("invalid buffer")
+        except Exception as err:
+            self.logger.print(f"Decode error {err}")
 
     def connected(self) -> bool:
         return self.client is not None
