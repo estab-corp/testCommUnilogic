@@ -36,13 +36,22 @@ class MsgParser:
         if msg_typ == MSGType.Unknown:
             return None, 0
         if msg_typ == MSGType.MachineState:
-            _, test = self.machine_state_msg.unpack(data)
+            if len(data) < self.machine_state_msg.size:
+                return None, 0
+            _, test = self.machine_state_msg.unpack(
+                data[0:self.machine_state_msg.size])
             return api.MachineStateMsg(test=test), self.machine_state_msg.size
         if msg_typ == MSGType.TaskStarted:
-            _, task_id, ok = self.task_started_msg.unpack(data)
+            if len(data) < self.task_started_msg.size:
+                return None, 0
+            _, task_id, ok = self.task_started_msg.unpack(
+                data[0:self.task_started_msg.size])
             return api.TaskStartedMsg(task_id=task_id, ok_status=ok), self.task_started_msg.size
         if msg_typ == MSGType.TaskEnded:
-            _, task_id, ok = self.task_ended_msg.unpack(data)
+            if len(data) < self.task_ended_msg.size:
+                return None, 0
+            _, task_id, ok = self.task_ended_msg.unpack(
+                data[0:self.task_ended_msg.size])
             return api.TaskEndedMsg(task_id=task_id, ok_status=ok), self.task_ended_msg.size
         assert 0
         return None
@@ -92,8 +101,11 @@ class APIClient:
         print("Try decoding some msg...")
         try:
             msg, read_size = self.msg_parser.decode_msg(self.received_bytes)
+            print(f"read size = {read_size}")
             if msg is not None:
                 self.logger.print(f"received Msg {msg} read_size={read_size}")
+                self.received_bytes = self.received_bytes[read_size:]
+                print(f"remains {len(self.received_bytes)} bytes")
             else:
                 self.logger.print("invalid buffer")
         except Exception as err:

@@ -1,19 +1,25 @@
 import socket
-from api_client import MsgParser
+from api_client import MsgParser, MSGType
 from api import MoveRequest
 
 
 msg_parser = MsgParser()
 
 
-def decode_request(data: bytes):
+def send_response(conn: socket.socket, req: MoveRequest, ok: bool):
+    data = msg_parser.task_started_msg.pack(
+        MSGType.TaskStarted, req.task_id, 1 if ok else 0)
+    print(f"sending {data.hex(sep=" ")}")
+    conn.send(data)
+
+
+def decode_request(data: bytes) -> MoveRequest:
     params = msg_parser.task_request_msg.unpack(data)
     task_id = params[0]
     vt = params[1]
     origin = (params[2], params[3], params[4])
     dest = (params[5], params[6], params[7])
-    req = MoveRequest(typ=vt, task_id=task_id, origin=origin, dest=dest)
-    print(req)
+    return MoveRequest(typ=vt, task_id=task_id, origin=origin, dest=dest)
 
 
 def client_loop(conn: socket.socket):
@@ -24,7 +30,10 @@ def client_loop(conn: socket.socket):
             return
         print(f"got {len(data)} bytes of data")
         try:
-            decode_request(data)
+            req = decode_request(data)
+            print(req)
+            send_response(conn, req, ok=(req.task_id % 2 == 0))
+
         except Exception as e:
             print(f"error: {e}")
 
