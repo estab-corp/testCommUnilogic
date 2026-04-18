@@ -104,7 +104,7 @@ class APIClient:
             msg, read_size = self.msg_parser.decode_msg(self.received_bytes)
             print(f"read size = {read_size}")
             if msg is not None:
-                self.msg_callback(msg)
+                self.msg_callback(msg, self.received_bytes[:read_size])
                 self.logger.print(f"received Msg {msg} read_size={read_size}")
                 self.received_bytes = self.received_bytes[read_size:]
                 print(f"remains {len(self.received_bytes)} bytes")

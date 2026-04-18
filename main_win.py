@@ -104,10 +104,12 @@ class MainWindow(tk.Tk):
 
         # Tableau msg reçu
 
-        self.msg_table = ttk.Treeview(center, columns=("msg"))
+        self.msg_table = ttk.Treeview(center, columns=("msg", "bytes"))
         self.msg_id = 0
         self.msg_table.heading("msg", text="Message")
-        self.msg_table.column("msg", width=800)
+        self.msg_table.heading("bytes", text="Bytes")
+        self.msg_table.column("msg", width=500)
+        self.msg_table.column("bytes", width=500)
         self.msg_table.pack(fill=tk.BOTH, expand=True)
 
         self.info_frame = tk.Frame(center, bg='blue', width=200, height=300)
@@ -121,9 +123,9 @@ class MainWindow(tk.Tk):
 
         self.after(UPDATE_UI_INTERVAL, self.on_timer)
 
-    def on_msg(self, msg):
+    def on_msg(self, msg, data: bytes):
         self.msg_table.insert(
-            "", tk.END, text=f"{self.msg_id}", values=(str(msg),))
+            "", tk.END, text=f"{self.msg_id}", values=(str(msg), f"{data.hex(sep=" ")}",))
         self.msg_id += 1
 
     def on_timer(self):
