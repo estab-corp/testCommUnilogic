@@ -106,8 +106,6 @@ class APIClient:
                 self.logger.print(f"received Msg {msg} read_size={read_size}")
                 self.received_bytes = self.received_bytes[read_size:]
                 print(f"remains {len(self.received_bytes)} bytes")
-            else:
-                self.logger.print("invalid buffer")
         except Exception as err:
             self.logger.print(f"Decode error {err}")
 
