@@ -1,12 +1,25 @@
 import socket
 from api_client import MsgParser, MSGType
-from api import MoveRequest
+from api import MoveRequest, MachineStateMsg, TaskEndedMsg
 
 
 msg_parser = MsgParser()
 
 
-def send_response(conn: socket.socket, req: MoveRequest, ok: bool):
+def send_machine_state(conn: socket.socket, msg: MachineStateMsg):
+    data = msg_parser.machine_state_msg.pack(MSGType.MachineState, msg.test)
+    print(f"sending {data.hex(sep=" ")}")
+    conn.send(data)
+
+
+def send_task_ended(conn: socket.socket, req: MoveRequest, ok: bool):
+    data = msg_parser.task_ended_msg.pack(
+        MSGType.TaskEnded, req.task_id, 1 if ok else 0)
+    print(f"sending {data.hex(sep=" ")}")
+    conn.send(data)
+
+
+def send_task_started(conn: socket.socket, req: MoveRequest, ok: bool):
     data = msg_parser.task_started_msg.pack(
         MSGType.TaskStarted, req.task_id, 1 if ok else 0)
     print(f"sending {data.hex(sep=" ")}")
@@ -32,7 +45,9 @@ def client_loop(conn: socket.socket):
         try:
             req = decode_request(data)
             print(req)
-            send_response(conn, req, ok=(req.task_id % 2 == 0))
+            send_task_started(conn, req, ok=(req.task_id % 2 == 0))
+            send_machine_state(conn, msg=MachineStateMsg(req.task_id))
+            send_task_ended(conn, req, ok=(req.task_id % 2 == 1))
 
         except Exception as e:
             print(f"error: {e}")
