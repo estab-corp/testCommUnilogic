@@ -57,9 +57,9 @@ class MainWindow(tk.Tk):
 
         self.recv_label_val = tk.StringVar(self, value="")
         tk.Label(center, textvariable=self.recv_label_val).pack(anchor=tk.W)
-        self.dump_recv_buf_button = tk.Button(center, text="dump recv",
-                                              command=self.action_dump_recv_buf)
-        self.dump_recv_buf_button.pack(anchor=tk.W)
+        clear_recv_buf_button = tk.Button(center, text="clear msgs",
+                                          command=self.action_clear_msgs)
+        clear_recv_buf_button.pack(anchor=tk.W)
 
         # Envoi msg Validation
         msg_frame = tk.LabelFrame(
@@ -138,10 +138,8 @@ class MainWindow(tk.Tk):
     def update_conn_state(self):
         if self.client.connected():
             self.connect_button.config(text="close")
-            self.dump_recv_buf_button.config(state=tk.ACTIVE)
         else:
             self.connect_button.config(text="connect")
-            self.dump_recv_buf_button.config(state=tk.DISABLED)
 
     def action_clear_console(self):
         self.logger.clear()
@@ -156,9 +154,9 @@ class MainWindow(tk.Tk):
             self.client.disconnect()
         self.update_conn_state()
 
-    def action_dump_recv_buf(self):
-        self.logger.print(f"{self.client.received_bytes.hex(sep=" ")}")
-        self.update_conn_state()
+    def action_clear_msgs(self):
+        self.msg_table.delete(*self.msg_table.get_children())
+        self.msg_id = 0
 
     def action_send_validation_msg(self):
         typ = api.ValidationType.PICK_AND_PLACE
