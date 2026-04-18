@@ -66,7 +66,8 @@ class MsgParser:
 
 
 class APIClient:
-    def __init__(self, logger: LoggerInterface):
+    def __init__(self, logger: LoggerInterface, msg_callback):
+        self.msg_callback = msg_callback
         self.host: str = ""
         self.port: int = -1
         self.client: Optional[socket.socket] = None
@@ -103,6 +104,7 @@ class APIClient:
             msg, read_size = self.msg_parser.decode_msg(self.received_bytes)
             print(f"read size = {read_size}")
             if msg is not None:
+                self.msg_callback(msg)
                 self.logger.print(f"received Msg {msg} read_size={read_size}")
                 self.received_bytes = self.received_bytes[read_size:]
                 print(f"remains {len(self.received_bytes)} bytes")

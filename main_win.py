@@ -61,6 +61,7 @@ class MainWindow(tk.Tk):
                                               command=self.action_dump_recv_buf)
         self.dump_recv_buf_button.pack(anchor=tk.W)
 
+        # Envoi msg Validation
         msg_frame = tk.LabelFrame(
             center, text="Envoi msg Validation",  relief="raised")
 
@@ -101,16 +102,29 @@ class MainWindow(tk.Tk):
                   command=self.action_send_validation_msg).grid(column=4, row=0)
         msg_frame.pack()
 
+        # Tableau msg reçu
+
+        self.msg_table = ttk.Treeview(center, columns=("msg"))
+        self.msg_id = 0
+        self.msg_table.heading("msg", text="Message")
+        self.msg_table.column("msg", width=800)
+        self.msg_table.pack(fill=tk.BOTH, expand=True)
+
         self.info_frame = tk.Frame(center, bg='blue', width=200, height=300)
         self.info_frame.pack(side=tk.BOTTOM, fill=tk.X)
         tk.Button(self.info_frame, text="clear",
                   command=self.action_clear_console).pack(anchor=tk.W)
         self.logger = Logger(master=self.info_frame)
         self.logger.pack(fill=tk.X)
-        self.client = APIClient(logger=self.logger)
+        self.client = APIClient(logger=self.logger, msg_callback=self.on_msg)
         self.update_conn_state()
 
         self.after(UPDATE_UI_INTERVAL, self.on_timer)
+
+    def on_msg(self, msg):
+        self.msg_table.insert(
+            "", tk.END, text=f"{self.msg_id}", values=(str(msg),))
+        self.msg_id += 1
 
     def on_timer(self):
         self.update_conn_state()
